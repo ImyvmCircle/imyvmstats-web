@@ -1,0 +1,51 @@
+{% extends "imyvmstats/layout.html" %}
+{% block title %}
+About us
+{% endblock %}
+{% block content %}
+    <h2>Logged messages</h2>
+
+    {% if page_obj %}
+    {% load mathfilters %}
+    {% load unix_to_time %}
+        <table class="message_list">
+            <thead>
+            <tr>
+                <th>序号</th>
+                <th>玩家ID</th>
+                <th>首次登录时间</th>
+                <th>最后离线时间</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for message in page_obj %}
+                <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td>{{ message.lastKnownName}}</td>
+                    <td>{{ message.firstPlayed|unix_to_datetime|date:'Y-m-d,H:i:s' }}</td>
+                    <td>{{ message.lastPlayed|unix_to_datetime|date:'Y-m-d,H:i:s' }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?uuid={{ uuid }}&page=1">&laquo; first</a>
+                    <a href="?uuid={{ uuid }}&page={{ page_obj.previous_page_number }}">previous</a>
+                {% endif %}
+        
+                <span class="current">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                </span>
+        
+                {% if page_obj.has_next %}
+                    <a href="?uuid={{ uuid }}&page={{ page_obj.next_page_number }}">next</a>
+                    <a href="?uuid={{ uuid }}&page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    {% else %}
+        <p>No messages have been logged. Use the <a href="{% url 'log' %}">Log Message form</a>.</p>
+    {% endif %}
+{% endblock %}
