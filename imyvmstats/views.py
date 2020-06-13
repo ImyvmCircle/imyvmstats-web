@@ -25,12 +25,16 @@ except:
     playersInfo = list()
 
 def playerinfos(request):
-    InfobylastPlayed = sorted(playersInfo, key=lambda k: k.get('lastPlayed', 0), reverse=True)
+    if request.GET.get('search'):
+        Info = [x for x in playersInfo if request.GET.get('search').lower() in x["lastKnownName"].lower() ]
+        InfobylastPlayed = sorted(Info, key=lambda k: k.get('lastPlayed', 0), reverse=True)
+    else:
+        InfobylastPlayed = sorted(playersInfo, key=lambda k: k.get('lastPlayed', 0), reverse=True)
     paginator = Paginator(InfobylastPlayed, 20) # Show 15 players per page
 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'imyvmstats/about.html', {'page_obj': page_obj})
+    return render(request, 'imyvmstats/about.html', {'page_obj': page_obj, 'search': request.GET.get('search')})
     
 
 def accountDetail(request):
@@ -41,12 +45,18 @@ def accountDetail(request):
     return render(request, 'imyvmstats/accountDetail.html', {'page_obj': page_obj, 'uuid':request.GET.get('uuid')})
 
 def accountListing(request):
-    players = EcoAccounts.objects.using('imyvmServer').order_by("-money")
+    if request.GET.get('search'):
+        players = EcoAccounts.objects.using('imyvmServer').filter(player__icontains=request.GET.get('search')).order_by("-money")
+    else:
+        players = EcoAccounts.objects.using('imyvmServer').order_by("-money")
     paginator = Paginator(players, 20) # Show 15 players per page
-
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'imyvmstats/home.html', {'page_obj': page_obj})
+    return render(request, 'imyvmstats/home.html', {'page_obj': page_obj, 'search': request.GET.get('search')})
+
+def searchAccount(s):
+    filteredPlayers = EcoAccounts.objects.filter(name__unaccent__icontains=s)
+
 
 # def about(request):
 #     return render(request, "imyvmstats/about.html")
